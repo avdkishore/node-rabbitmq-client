@@ -24,7 +24,7 @@ const {
     heartbeatInterval = 5,
     reconnectTime = 10,
     options = {},
-    defaultQueueFeatures = {}
+    defaultQueueFeatures = { durable: true }
 } = config.rabbitMQ;
 
 // Handle an incomming message.
@@ -113,7 +113,6 @@ const consume = (params = {}, handler) => {
  * @param {object} [data] - data to be published.
  */
 const publish = (queueName, data) => {
-  console.log(queueName, data);
   const channelWrapper = connection.createChannel({
     json: true,
     setup(channel) {
@@ -127,16 +126,11 @@ const publish = (queueName, data) => {
     channelWrapper
       .sendToQueue(queueName, data, { persistent: true })
       .then(() => {
-        console.log('Message sent');
-        // return wait(1000);
+        logger.log('data', { note: `Message sent to queue ${queueName}` });
         return null;
       })
-      .then(() =>
-        // return sendMessage();
-        Promise.resolve()
-      )
       .catch(err => {
-        console.log('Message was rejected:', err.stack);
+        logger.log('error', { note: 'Message was rejected', error: err, custom: { data }});
         channelWrapper.close();
         connection.close();
       });
@@ -152,7 +146,7 @@ const purgeQueue = queueName => {
     setup(channel) {
       // `channel` here is a regular amqplib `ConfirmChannel`.
       return Promise.all([
-        channel.assertQueue(queueName, { durable: true }),
+        channel.assertQueue(queueName, defaultQueueFeatures),
         channel.purgeQueue(queueName)
       ]);
     }
