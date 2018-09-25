@@ -27,13 +27,6 @@ const {
     defaultQueueFeatures = { durable: true }
 } = config.rabbitMQ;
 
-// Handle an incomming message.
-// const onMessage = function(channelWrapper, data) {
-//   const message = JSON.parse(data.content.toString());
-//   console.log("receiver: got message", message);
-//   channelWrapper.ack(data);
-// }
-
 const connectionUrl = `${protocol}://${username}:${password}@${host}:${port}/${vhost}`;
 
 /**
@@ -84,7 +77,6 @@ const consume = (params = {}, handler) => {
       return Promise.all([
         channel.assertQueue(queueName, queueOptions),
         channel.prefetch(prefetch),
-        // channel.consume(queueName, handler.bind(null, channelWrapper))
         channel.consume(
           queueName,
           data => {
@@ -109,7 +101,7 @@ const consume = (params = {}, handler) => {
 /**
  *  Publisher.
  *
- * @param {object} params - name of queue.
+ * @param {object} params - object with queue name and queue options.
  * @param {object} [data] - data to be published.
  * @returns {void | Promise} - Resolves when complete.
  */
@@ -129,7 +121,6 @@ const publish = (params = {}, data) => {
     }
   });
 
-  // Send messages until someone hits CTRL-C or something goes wrong...
   const startPublishing = () => {
     channelWrapper
       .sendToQueue(queueName, data, { persistent: true })
@@ -145,16 +136,28 @@ const publish = (params = {}, data) => {
   };
 
   startPublishing();
-
-  // return sendMessage;
+  return null;
 };
 
-const purgeQueue = queueName => {
+/**
+ *  purgeQueue.
+ *
+ * @param {object} params - object with queue name and queue options.
+ * @returns {void | Promise} - Resolves when complete.
+ */
+const purgeQueue = (params ={}) => {
+  const queueName = params.queue && params.queue.name;
+  const queueOptions = params.queue.options || defaultQueueFeatures;
+
+  if (!queueName) {
+    return Promise.reject(new Error('Queue name is missing'));
+  }
+
   const channelWrapper = connection.createChannel({
     setup(channel) {
       // `channel` here is a regular amqplib `ConfirmChannel`.
       return Promise.all([
-        channel.assertQueue(queueName, defaultQueueFeatures),
+        channel.assertQueue(queueName, queueOptions),
         channel.purgeQueue(queueName)
       ]);
     }
@@ -163,6 +166,11 @@ const purgeQueue = queueName => {
   return channelWrapper;
 };
 
+/**
+ *  ackAll.
+ *
+ * @returns {void | Promise} - Resolves when complete.
+ */
 const ackAll = () => {
   const channelWrapper = connection.createChannel({
     setup(channel) {
