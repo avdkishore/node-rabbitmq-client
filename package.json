@@ -1,0 +1,35 @@
+{
+  "name": "node-rabbitmq-client",
+  "version": "1.0.0",
+  "description": "Auto-reconnect and round robin support for amqplib.",
+  "author": "Kishore <kishore@logos.social>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "yarn clean && babel -s -d lib src",
+    "clean": "rm -rf lib coverage .nyc_output",
+    "test": "yarn test:lint",
+    "test:lint": "eslint src test"
+  },
+  "dependencies": {
+    "amqp-connection-manager": "^2.2.0",
+    "amqplib": "^0.5.2",
+    "logstash-winston": "git+ssh://git@github.com/log-os/logstash-winston.git#v1.2.8"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.6.1",
+    "babel-register": "^6.26.0"
+  },
+  "engines": {
+    "node": ">=8.5.0",
+    "npm": ">5.0.0"
+  },
+  "keywords": [
+    "amqp",
+    "rabbitmq",
+    "cluster",
+    "amqplib"
+  ]
+}
