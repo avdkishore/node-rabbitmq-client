@@ -1,22 +1,31 @@
 import AmqpConnectionManager from './AmqpConnectionManager';
 import path from 'path';
 
-export function connect(urls, options) {
+/** check for logger in the global scope. */
+const logger = global.logger ? global.logger : { log: console.log, error: console.error };
+
+function connect(urls, options) {
     return new AmqpConnectionManager(urls, options);
 }
 
-const amqp = {
-    connect
-};
-
-// export default amqp;
 const env = process.env.NODE_ENV || 'development';
 const currentPath = process.cwd();
-const config = require(path.join(currentPath, 'config', 'env', `${env}`));
-console.log(config);
 
-// const QUEUE_NAME = 'amqp-connection-manager-sample'
-const { host, port, username, password, vhost, protocol = 'amqp' } = config.rabbitMQ;
+const config = require(path.join(currentPath, 'config', 'env', `${env}`));
+
+const {
+    host,
+    port,
+    username,
+    password,
+    vhost = '/',
+    protocol = 'amqp',
+    prefetch = 2,
+    heartbeatInterval = 5,
+    reconnectTime = 10,
+    options = {},
+    defaultQueueFeatures = {}
+} = config.rabbitMQ;
 
 // Handle an incomming message.
 // const onMessage = function(channelWrapper, data) {
@@ -37,33 +46,44 @@ const connectionUrl = `${protocol}://${username}:${password}@${host}:${port}/${v
 // Create a connetion manager
 const connection = connect(
   [connectionUrl],
-  { json: true }
+  {
+    json: true,
+    heartbeatIntervalInSeconds: heartbeatInterval,
+    reconnectTimeInSeconds: reconnectTime,
+    connectionOptions: options
+  }
 );
 
-console.log(connection);
-
 connection.on('connect', () => {
-  console.log('Connected!');
+  logger.log('data', { note: 'Connected to RabbitMQ server' });
 });
+
 connection.on('disconnect', params => {
-  console.log('Disconnected.', params.err.stack);
+  logger.log('error', { error: params.err, note: 'RabbitMQ server is disconnected' });
 });
 
 /**
  *  Consumer.
  *
- * @param {string} queueName - name of queue.
+ * @param {object} params - object with queue name and queue options.
  * @param {function} [handler] - callback.
  * @returns {void | Promise} - Resolves when complete.
  */
-const consume = (queueName, handler) => {
+const consume = (params = {}, handler) => {
+  const queueName = params.queue && params.queue.name;
+  const queueOptions = params.queue.options || defaultQueueFeatures;
+
+  if (!queueName) {
+    return Promise.reject(new Error('Queue name is missing'));
+  }
+
   // Set up a channel listening for messages in the queue.
   const channelWrapper = connection.createChannel({
     setup(channel) {
       // `channel` here is a regular amqplib `ConfirmChannel`.
       return Promise.all([
-        channel.assertQueue(queueName, { durable: true }),
-        channel.prefetch(1),
+        channel.assertQueue(queueName, queueOptions),
+        channel.prefetch(prefetch),
         // channel.consume(queueName, handler.bind(null, channelWrapper))
         channel.consume(
           queueName,
@@ -75,14 +95,14 @@ const consume = (queueName, handler) => {
           { noAck: false }
         )
       ]).catch(e => {
-        console.error(e);
+        logger.log('error', { error: e, note: 'error from consume' });
       });
     }
   });
 
-  // return channelWrapper;
+  /** start the consumer */
   return channelWrapper.waitForConnect().then(() => {
-    console.log(`Listening for messages on ${queueName}`);
+    logger.log('data', { note: `Consumption from ${queueName} started!` });
   });
 };
 
@@ -158,5 +178,3 @@ module.exports = {
   purgeQueue,
   ackAll
 };
-
-export default amqp;
