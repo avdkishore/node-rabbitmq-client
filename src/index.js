@@ -122,7 +122,7 @@ const publish = (params = {}, data) => {
       .sendToQueue(queueName, data, { persistent: true })
       .then(() => {
         logger.log('data', { note: `Message sent to queue ${queueName}` });
-        return null;
+        return Promise.resolve(data);
       })
       .catch(err => {
         logger.log('error', { note: 'Message was rejected', error: err, custom: { data }});
@@ -132,7 +132,6 @@ const publish = (params = {}, data) => {
   };
 
   startPublishing();
-  return null;
 };
 
 /**
