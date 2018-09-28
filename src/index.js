@@ -1,8 +1,7 @@
 const amqp = require('amqp-connection-manager');
 const path = require('path');
-const logstashWinston = require('logstash-winston');
 
-global.logger = logstashWinston.logger;
+const logger = global.logger || require('logstash-winston').logger;
 
 const env = process.env.NODE_ENV || 'development';
 const currentPath = process.cwd();
