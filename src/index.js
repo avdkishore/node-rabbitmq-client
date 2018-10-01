@@ -9,17 +9,17 @@ const currentPath = process.cwd();
 const config = require(path.join(currentPath, 'config', 'env', `${env}`));
 
 const {
-    host,
-    port,
-    username,
-    password,
-    vhost = '/',
-    protocol = 'amqp',
-    prefetch = 2,
-    heartbeatInterval = 5,
-    reconnectTime = 10,
-    options = {},
-    defaultQueueFeatures = { durable: true }
+  host,
+  port,
+  username,
+  password,
+  vhost = '/',
+  protocol = 'amqp',
+  prefetch = 2,
+  heartbeatInterval = 5,
+  reconnectTime = 10,
+  options = {},
+  defaultQueueFeatures = { durable: true }
 } = config.rabbitMQ;
 
 const connectionUrl = `${protocol}://${username}:${password}@${host}:${port}/${vhost}`;
@@ -60,37 +60,63 @@ connection.on('disconnect', params => {
 const consume = (params = {}, handler) => {
   const queueName = params.queue && params.queue.name;
   const queueOptions = params.queue.options || defaultQueueFeatures;
+  const queue = config.rabbitMQ;
 
   if (!queueName) {
     return Promise.reject(new Error('Queue name is missing'));
   }
 
-  // Set up a channel listening for messages in the queue.
+  /** Set up a channel listening for messages in the queue. */
   const channelWrapper = connection.createChannel({
     setup(channel) {
-      // `channel` here is a regular amqplib `ConfirmChannel`.
+      /** `channel` here is a regular amqplib `ConfirmChannel`. */
       return Promise.all([
         channel.assertQueue(queueName, queueOptions),
         channel.prefetch(prefetch),
         channel.consume(
           queueName,
           data => {
-            const message = JSON.parse(data.content.toString());
+            let message;
+            try {
+              message = JSON.parse(data.content.toString());
 
-            handler(message).then(() => channelWrapper.ack(data)).catch(() => {});
+              return handler(message)
+                .then(() => {
+                  channelWrapper.ack(data);
+                  return Promise.resolve(data);
+                });
+            } catch (error) {
+              logger.log('error', {
+                error,
+                note: `Got malformed message from queue ${queueName}`,
+                custom: { data: message }
+              });
+
+              if (queue.parsingErrors) {
+                publish(queue.parsingErrors, {
+                  message,
+                  error,
+                  queueName
+                });
+              }
+            }
           },
           { noAck: false }
         )
-      ]).catch(e => {
-        logger.log('error', { error: e, note: 'error from consume' });
-      });
+      ])
+        /** catch all errors */
+        .catch(e => {
+          logger.log('error', { error: e, note: 'error from consume' });
+        });
     }
   });
 
   /** start the consumer */
-  return channelWrapper.waitForConnect().then(() => {
-    logger.log('data', { note: `Consumption from ${queueName} started!` });
-  });
+  channelWrapper.waitForConnect()
+    .then(() => {
+      logger.log('data', { note: `Consumption from ${queueName} started!` });
+    })
+    .catch(e => logger.log('error', { error: e, note: 'error from consume' }));
 };
 
 /**
@@ -117,27 +143,30 @@ const publish = (params = {}, data) => {
   });
 
   const startPublishing = () => {
-    channelWrapper
+    /** returns a <Promise> */
+    return channelWrapper
       .sendToQueue(queueName, data, { persistent: true })
       .then(() => {
-        logger.log('data', { note: `Message sent to queue ${queueName}` });
+        logger.log('data', { note: `Message sent to queue ${queueName}`, custom: { data } });
         return Promise.resolve(data);
       })
       .catch(err => {
-        logger.log('error', { note: 'Message was rejected', error: err, custom: { data }});
+        logger.log('error', { note: 'Message is rejected', error: err, custom: { data }});
         channelWrapper.close();
         connection.close();
+        return Promise.reject(err);
       });
   };
 
-  startPublishing();
+  /** explicitly return this function*/
+  return startPublishing();
 };
 
 /**
  *  purgeQueue.
  *
  * @param {object} params - object with queue name and queue options.
- * @returns {void | Promise} - Resolves when complete.
+ * @returns {void | Promise} - Returns resolved promise
  */
 const purgeQueue = (params ={}) => {
   const queueName = params.queue && params.queue.name;
@@ -147,17 +176,19 @@ const purgeQueue = (params ={}) => {
     return Promise.reject(new Error('Queue name is missing'));
   }
 
-  const channelWrapper = connection.createChannel({
-    setup(channel) {
-      // `channel` here is a regular amqplib `ConfirmChannel`.
-      return Promise.all([
-        channel.assertQueue(queueName, queueOptions),
-        channel.purgeQueue(queueName)
-      ]);
-    }
-  });
+  return new Promise(resolve => {
+    connection.createChannel({
+      setup(channel) {
+        // `channel` here is a regular amqplib `ConfirmChannel`.
+        return Promise.all([
+          channel.assertQueue(queueName, queueOptions),
+          channel.purgeQueue(queueName)
+        ]);
+      }
+    });
 
-  return channelWrapper;
+    return resolve(params);
+  });
 };
 
 /**
@@ -166,17 +197,20 @@ const purgeQueue = (params ={}) => {
  * @returns {void | Promise} - Resolves when complete.
  */
 const ackAll = () => {
-  const channelWrapper = connection.createChannel({
-    setup(channel) {
-      // `channel` here is a regular amqplib `ConfirmChannel`.
-      return channel.ackAll();
-    }
-  });
+  return new Promise(resolve => {
+    connection.createChannel({
+      setup(channel) {
+        // `channel` here is a regular amqplib `ConfirmChannel`.
+        return channel.ackAll();
+      }
+    });
 
-  return channelWrapper;
+    return resolve();
+  });
 };
 
 module.exports = {
+  connection,
   publish,
   consume,
   purgeQueue,

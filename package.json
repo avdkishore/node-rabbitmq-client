@@ -6,21 +6,24 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "lib/index.js",
   "scripts": {
-    "build": "yarn clean && babel -s -d lib src",
+    "build": "yarn clean && yarn test && babel -s -d lib src",
     "clean": "rm -rf lib coverage .nyc_output",
-    "test": "yarn test:lint",
+    "test": "export NODE_ENV=test && yarn test:lint && mocha",
     "test:lint": "eslint src test"
   },
   "dependencies": {
     "amqp-connection-manager": "^2.2.0",
     "amqplib": "^0.5.2",
-    "logstash-winston": "git+ssh://git@github.com/log-os/logstash-winston.git#v1.2.8"
+    "logstash-winston": "git+ssh://git@github.com/log-os/logstash-winston.git#v1.3.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.6.1",
-    "babel-register": "^6.26.0"
+    "babel-register": "^6.26.0",
+    "chai": "^4.2.0",
+    "eslint": "4",
+    "mocha": "^5.2.0"
   },
   "engines": {
     "node": ">=8.5.0",

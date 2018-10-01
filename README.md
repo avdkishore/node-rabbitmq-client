@@ -33,6 +33,51 @@ purge({ queue: { name: 'some name' } });
 ackAll();
 ```
 
+## Please read this for implementing consume
+
+* `promiseHandler` for consume should always return a resolved Promise even if some operations on the received message fails.
+* When returning a resolved Promise, parameters need not be passed to it.If passed, these are simply ignored.
+* Best practice is to implement a catch handler for the `promiseHandler` and push to some other queue and return a resolved Promise from there.
+* If parsing the JSON message fails while consuming, this will try to push this error to another queue `parsingErrors`. So, if this failure is to be handled and noted, provide `parsingErrors` queue in the same config. (This is optional. Whether or not queue is provided, the error will be logged);
+
+```javascript
+
+promiseFunction(message)
+    .then(data => {
+      /* once processing the message is successful, return resolved promise */
+      /* if status queue is provided and success should be recorded */
+      if (statusQueue && recordSuccess) {
+        publish(statusQueue, {
+          status: 'success',
+          queueName,
+          message: data
+        });
+      }
+
+      /* this is needed to ack to the channel regarding this message */
+      return Promise.resolve();
+    })
+    .catch(error => {
+      if (statusQueue && recordError) {
+        /* if status queue is provided and failure should be recorded */
+        publish(statusQueue, {
+          status: 'error',
+          queueName,
+          error,
+          message
+        }).then(() => channel.ack(msg));
+      }
+      logger.log('error', {
+        note: `Error while processing the message from ${queueName}`,
+        error: error
+      });
+
+      /* return resolved Promise from here */
+      return Promise.resolve();
+    });
+```
+
+
 ## Configuration
 
 By default, this looks at `/config/env/${NODE_ENV}` file for rabbitMQ configuration

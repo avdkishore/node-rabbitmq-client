@@ -1,0 +1,4 @@
+--reporter spec
+--recursive
+--slow 100
+--bail
