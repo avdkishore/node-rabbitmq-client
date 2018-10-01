@@ -46,8 +46,10 @@ describe('RabbitMQClient', () => {
   });
 
   it('should invoke promise handler with the message consumed', () => {
-    const callbackHandler = (message) => {
-      if (!message) throw new Error('handler should be called with message');
+    const callbackHandler = (message, options) => {
+      if (!message || !options) throw new Error('handler should be invoked with message and options');
+
+      options.should.be.an('object');
       message.should.be.an('object');
       message.should.deep.equal(data);
       return Promise.resolve();

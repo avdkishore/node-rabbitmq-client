@@ -80,7 +80,7 @@ const consume = (params = {}, handler) => {
             try {
               message = JSON.parse(data.content.toString());
 
-              return handler(message)
+              return handler(message, params)
                 .then(() => {
                   channelWrapper.ack(data);
                   return Promise.resolve(data);
