@@ -12,7 +12,7 @@ This project is written on top of [amqp-connection-manager](https://github.com/b
 
 ## Usage
 
-> yarn add git+ssh://git@github.com:log-os/node-rabbitmq-client.git
+Install => yarn add git+ssh://git@github.com/log-os/node-rabbitmq-client
 
 ```javascript
 const RabbitMQClient = require('node-rabbitmq-client');
