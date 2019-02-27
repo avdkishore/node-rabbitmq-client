@@ -4,6 +4,18 @@ const RabbitMQClient = require('../../src');
 describe('RabbitMQClient', () => {
   const invalidParams = { queue: 'queue-name' };
   const validParams = { queue: { name: 'queue-name' }};
+  const priorityQueueParams = {
+    queue: {
+      name: 'priority-queue',
+      options: {
+        arguments: {
+          /* For more info: https://www.rabbitmq.com/priority.html */
+          'x-max-priority': 9
+        }
+      },
+      messagePriority: 8
+    }
+  };
   const data = { message: 'message' };
 
   /** resolve should be invoked in the context of Promise object */
@@ -36,6 +48,17 @@ describe('RabbitMQClient', () => {
 
   it('should return resolved promise when message is published', () => {
     RabbitMQClient.publish(validParams, data)
+      .then(m => {
+        m.should.be.an('object');
+        m.should.deep.equal(data);
+      })
+      .catch(() => {
+        throw new Error('should not return a rejected promise');
+      });
+  });
+
+  it('should return resolved promise when a message with priority is published', () => {
+    RabbitMQClient.publish(priorityQueueParams, data)
       .then(m => {
         m.should.be.an('object');
         m.should.deep.equal(data);

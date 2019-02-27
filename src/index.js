@@ -134,6 +134,12 @@ const publish = (params = {}, data) => {
     return Promise.reject(new Error('Queue name is missing'));
   }
 
+  // consider message priority if provided
+  const messagePriority = params.queue.messagePriority;
+  const publishOptions = { persistent: true };
+
+  if (Number(messagePriority) > 0) publishOptions.priority = messagePriority;
+
   const channelWrapper = connection.createChannel({
     json: true,
     setup(channel) {
@@ -145,7 +151,7 @@ const publish = (params = {}, data) => {
   const startPublishing = () => {
     /** returns a <Promise> */
     return channelWrapper
-      .sendToQueue(queueName, data, { persistent: true })
+      .sendToQueue(queueName, data, publishOptions)
       .then(() => {
         logger.log('data', { note: `Message sent to queue ${queueName}`, custom: { data } });
         return Promise.resolve(data);

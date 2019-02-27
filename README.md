@@ -12,10 +12,20 @@ This project is written on top of [amqp-connection-manager](https://github.com/b
 
 ## Usage
 
-Install => yarn add git+ssh://git@github.com/log-os/node-rabbitmq-client
+Install => yarn add git+ssh://git@gitlab.com/mojoreads/node-rabbitmq-client
 
 ```javascript
 const RabbitMQClient = require('node-rabbitmq-client');
+
+/**
+ * options is the object which is passed to consume at the time of initialization
+ *
+ * options = {
+ *    queue: {
+ *      name: 'some-queue-name'
+ *   }
+ * }
+ */
 
 const { publish, consume, purgeQueue, ackAll } = RabbitMQClient;
 
@@ -43,13 +53,19 @@ ackAll();
 
 ```javascript
 /**
- * options is the object which is passed to consume at the time of initialization
- * 
- * options = {
- *    queue: {
- *    name: 'some-queue-name'
- *   }
- * }
+ *
+  options is the object which is passed to consume at the time of initialization
+  {
+    queue: {
+      name: 'some-queue-name',
+      messagePriority: message priority (1-10), // set if the queue is a priority queue. It is optional
+      options: {
+        arguments: {
+          'x-max-priority': queue priority (1- 10) // set to make the queue a priority queue. It is optional
+        }
+      }
+    }
+  }
  */
 promiseFunction(message, options)
   .then(data => {
@@ -85,7 +101,6 @@ promiseFunction(message, options)
     return Promise.resolve();
   });
 ```
-
 
 ## Configuration
 
