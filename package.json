@@ -14,7 +14,7 @@
   "dependencies": {
     "amqp-connection-manager": "^2.2.0",
     "amqplib": "^0.5.2",
-    "logstash-winston": "git+ssh://git@github.com/log-os/logstash-winston.git#v1.3.0"
+    "logstash-winston": "git+ssh://git@gitlab.com/mojoreads/logstash-winston.git#v1.3.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
