@@ -6,7 +6,15 @@ const logger = global.logger || require('logstash-winston').logger;
 const env = process.env.NODE_ENV || 'development';
 const currentPath = process.cwd();
 
-const config = require(path.join(currentPath, 'config', 'env', `${env}`));
+let config;
+
+try {
+  config = require(path.join(currentPath, 'config', 'env', `${env}`));
+} catch (e) {
+  // eslint-disable-next-line no-console
+  console.warn(`config is not found at /config/env/${env}, checking for config at  /src/config/env/${env}`);
+  config = require(path.join(currentPath, 'src', 'config', 'env', `${env}`));
+}
 
 const {
   host,

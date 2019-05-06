@@ -105,6 +105,7 @@ promiseFunction(message, options)
 ## Configuration
 
 By default, this looks at `/config/env/${NODE_ENV}` file for rabbitMQ configuration
+If configuration is not found here, then it looks at `/src/config/env/${NODE_ENV}`
 
 ```javascript
 config = {
