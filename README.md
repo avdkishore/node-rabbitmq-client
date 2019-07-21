@@ -12,7 +12,8 @@ This project is written on top of [amqp-connection-manager](https://github.com/b
 
 ## Usage
 
-Install => yarn add git+ssh://git@gitlab.com/mojoreads/node-rabbitmq-client
+Using yarn: `yarn add node-rabbitmq-client`
+Using npm: `npm install node-rabbitmq-client`
 
 ```javascript
 const RabbitMQClient = require('node-rabbitmq-client');
