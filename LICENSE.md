@@ -1,1 +1,0 @@
-(c) Copyright 2018 log.os

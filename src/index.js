@@ -1,7 +1,8 @@
 const amqp = require('amqp-connection-manager');
 const path = require('path');
 
-const logger = global.logger || require('logstash-winston').logger;
+// eslint-disable-next-line no-console
+const logger = global.logger || { log: console.log, error: console.error };
 
 const env = process.env.NODE_ENV || 'development';
 const currentPath = process.cwd();
