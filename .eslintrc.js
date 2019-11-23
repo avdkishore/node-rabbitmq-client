@@ -1,26 +1,31 @@
 module.exports = {
-  "env": {
-    "es6": true,
-    "node": true,
-    "mocha": true
+  parser: 'babel-eslint',
+  parserOptions: {
+    sourceType: "module",
   },
-  "extends": "eslint:recommended",
-  "rules": {
-    "indent": [
-      "error",
+  env: {
+    'es6': true,
+    'node': true,
+    'mocha': true
+  },
+  extends: 'eslint:recommended',
+  rules: {
+    indent: [
+      'error',
       2
     ],
-    "linebreak-style": [
-      "error",
-      "unix"
+    'linebreak-style': [
+      'error',
+      'unix'
     ],
-    "quotes": [
-      "error",
-      "single"
+    quotes: [
+      'error',
+      'single'
     ],
-    "semi": [
-      "error",
-      "always"
-    ]
+    semi: [
+      'error',
+      'always'
+    ],
+    "no-func-assign": "warn"
   }
 };
