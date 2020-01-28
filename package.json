@@ -1,6 +1,6 @@
 {
   "name": "node-rabbitmq-client",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Auto-reconnect and round robin support for amqplib.",
   "author": "Kishore <avdkishore@gmail.com>",
   "licenses": [
