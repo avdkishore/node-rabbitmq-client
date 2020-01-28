@@ -49,6 +49,12 @@ export default class RabbitMQ {
     this.connection.on('disconnect', params => {
       logger.log('error', { error: params.err, note: 'RabbitMQ server is disconnected' });
     });
+
+    // bind the 'this' context to all the methods
+    this.consume = this.consume.bind(this);
+    this.publish = this.publish.bind(this);
+    this.purgeQueue = this.purgeQueue.bind(this);
+    this.ackAll = this.ackAll.bind(this);
   }
 
   /**
