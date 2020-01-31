@@ -156,6 +156,7 @@ export default class RabbitMQ {
         .sendToQueue(queueName, data, publishOptions)
         .then(() => {
           logger.log('data', { note: `Message sent to queue ${queueName}`, custom: { data } });
+          channelWrapper.close();
           return Promise.resolve(data);
         })
         .catch(err => {
