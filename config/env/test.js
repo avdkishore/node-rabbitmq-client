@@ -2,8 +2,8 @@ const config = {
   rabbitMQ: {
     host: process.env.PUBSUB_RABBITMQ_SERVICE_HOST || 'localhost',
     port: process.env.PUBSUB_RABBITMQ_SERVICE_PORT_AMQP || 5672,
-    username: process.env.RABBITMQ_USERNAME || 'user',
-    password: process.env.RABBITMQ_PASSWORD || 'user',
+    username: process.env.RABBITMQ_USERNAME || 'guest',
+    password: process.env.RABBITMQ_PASSWORD || 'guest',
     prefetch: process.env.PREFETCH_JOBS || 2,
     protocol: 'amqp',
     heartbeatInterval: 5,

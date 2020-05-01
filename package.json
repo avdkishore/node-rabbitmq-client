@@ -1,19 +1,22 @@
 {
   "name": "node-rabbitmq-client",
-  "version": "2.0.2",
+  "version": "3.0.2",
   "description": "Auto-reconnect and round robin support for amqplib.",
   "author": "Kishore <avdkishore@gmail.com>",
-  "licenses": [{
-		"type": "MIT",
-		"url": "https://raw.github.com/avdkishore/node-rabbitmq-client/master/LICENSE"
-	}],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/avdkishore/node-rabbitmq-client/master/LICENSE"
+    }
+  ],
   "homepage": "https://github.com/avdkishore/node-rabbitmq-client",
   "main": "lib/index.js",
   "scripts": {
-    "build": "yarn clean && yarn test && babel -s -d lib src",
+    "build": "yarn clean && yarn test && babel -s -d lib src/index.js && yarn lint:fix",
     "clean": "rm -rf lib coverage .nyc_output",
-    "test": "export NODE_ENV=test && yarn test:lint && mocha",
+    "test": "export NODE_ENV=test && yarn test:lint && mocha --require @babel/register",
     "test:lint": "eslint src test",
+    "lint:fix": "eslint --fix src test",
     "prepare": "yarn build"
   },
   "dependencies": {
@@ -21,10 +24,13 @@
     "amqplib": "^0.5.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.6.1",
-    "babel-register": "^6.26.0",
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/plugin-transform-classes": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "@babel/register": "^7.7.4",
+    "babel-eslint": "^10.0.3",
+    "babel-plugin-transform-object-rest-spread": "^7.0.0-beta.3",
     "chai": "^4.2.0",
     "eslint": "4",
     "mocha": "^5.2.0"
@@ -40,6 +46,6 @@
     "amqplib"
   ],
   "files": [
-		"lib"
-	]
+    "lib"
+  ]
 }
