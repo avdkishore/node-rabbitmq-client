@@ -1,3 +1,6 @@
+# IMPORTANT NOTE:
+This Project is no more maintained as of July 2023.
+
 # Connection management for rabbitmq client
 
 Node js Rabbit MQ client which has connection management backed into it.
